@@ -30,7 +30,7 @@ def create_scond(parms):
     if parms['mat'] =='Ge':
         mat_scond = materials.Ge
         
-    if parms['mat'] == 'another':
+    if parms['mat'] == 'custom':
         scond = models.Semiconductor(parms['m_e']*constants.me,parms['m_h']*constants.me, parms['E_gap'] * constants.eV, eps=parms['epsilon'], chi=None)
     else:      
         parms['E_gap'] = mat_scond.Eg / constants.eV #eV
@@ -64,7 +64,7 @@ def phi(params):
     root = fsolve(f,x_0, args = params)
     return root[0]
 
-def make_points(phi, W, scond, E_as):
+def make_points(phi, W, parms):
     #phi в эВ
     #W в см
     
@@ -83,10 +83,10 @@ def make_points(phi, W, scond, E_as):
     E_d_s = [] # энергия доноров
     E_as_s = [] #энергия поверхностных акцепторов
     
-    E_f = scond.fermi_level()/constants.eV
-    E_gap = scond.Eg/constants.eV
-    E_d = scond.Ed/constants.eV
-    E_as_eV = E_as/constants.eV
+    E_f = parms['E_f'] / constants.eV
+    E_gap = parms['E_gap'] / constants.eV
+    E_d = parms['E_d'] / constants.eV
+    E_as_eV = parms['E_as'] / constants.eV
      
     
     for i in range(N+1):
@@ -124,7 +124,7 @@ def calculate(parms):
         parms['E_f'] = scond.fermi_level(T)
         results['phi'] = phi(parms) #eV
         results['W'] = W(results['phi'], parms) #cm
-        results['x_s'], results['E_f_s'], results['E_v_s'],results['E_c_s'], results['E_d_s'], results['E_as_s'] = make_points(results['phi'], results['W'], scond, parms['E_as'])   
+        results['x_s'], results['E_f_s'], results['E_v_s'],results['E_c_s'], results['E_d_s'], results['E_as_s'] = make_points(results['phi'], results['W'], parms)   
     else: results['message'] = message
     return results
 
