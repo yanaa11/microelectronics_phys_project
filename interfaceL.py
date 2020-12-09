@@ -17,19 +17,21 @@ def draw_figure(ax, figure_canvas_agg, results):
     """
     
     ax.cla()                 
-    ax.set_xlabel("t")
-    ax.set_ylabel("E")
+    ax.set_xlabel("x [cm]")
+    ax.set_ylabel("E [eV]")
     ax.grid()
 # update plots
     if results['message'] == 'ok':
-        ax.plot(results['x_s'], results['E_f_s'], label='E_f_s')
-        ax.plot(results['x_s'], results['E_v_s'], label='E_v_s')
-        ax.plot(results['x_s'], results['E_c_s'], label='E_c_s')
-        ax.plot(results['x_s'], results['E_d_s'], label='E_d_s')
-        ax.plot(results['x_s'], results['E_as_s'], label='E_as_s')
+        ax.plot(results['x_s'], results['E_f_s'], label='Fermi Energy')
+        ax.plot(results['x_s'], results['E_v_s'], label='Valence Band')
+        ax.plot(results['x_s'], results['E_c_s'], label='Conduction Band')
+        ax.plot(results['x_s'], results['E_d_s'], label='Donor Energy')
+        ax.plot(results['x_s'], results['E_as_s'], label='Acceptor Energy')
         ax.axhline(results['phi'], c='k', linestyle='dashed')
+        ax.text(0.002, results['phi'] + 0.02, 'phi = '+str(round(results['phi'], 4)) + ' [eV]')
         ax.axvline(results['W'], c='k', linestyle='dashed')
-        ax.legend(bbox_to_anchor=(1., 0.5), fontsize=12, loc='right')
+        ax.text(results['W']+0.0001, 0.2, 'W = '+str(round(results['W'], 4)) + ' [cm]')
+        ax.legend(bbox_to_anchor=(1., 0.5), fontsize=10, loc='right')
     
     figure_canvas_agg.draw()
 
@@ -53,28 +55,12 @@ def getCalculatedValues(values):
 
 # handling of events
 def update_sliders(vals):
-    window['SL1'].update(vals[0])
-    window['SL2'].update(vals[1])
-    window['SL3'].update(vals[2])
-    window['SL4'].update(vals[3])
-    window['SL5'].update(vals[4])
-    window['SL6'].update(vals[5])
-    window['SL7'].update(vals[6])
-    window['SL8'].update(vals[7])
-    window['SL9'].update(vals[8])
-    window['SL10'].update(vals[9])
+    for i in range(1, 11):
+        window['SL'+str(i)].update(vals[i-1])
     
 def update_inputs(vals):
-    window['-IN1-'].update(vals[0])
-    window['-IN2-'].update(vals[1])
-    window['-IN3-'].update(vals[2])
-    window['-IN4-'].update(vals[3])
-    window['-IN5-'].update(vals[4])
-    window['-IN6-'].update(vals[5])
-    window['-IN7-'].update(vals[6])
-    window['-IN8-'].update(vals[7])
-    window['-IN9-'].update(vals[8])
-    window['-IN10-'].update(vals[9])    
+    for i in range(1, 11):
+        window['-IN'+str(i)+'-'].update(vals[i-1])
 
 def block_unblock_properties_SC(block):
     """
@@ -114,14 +100,19 @@ def output_info(results):
     if results['message'] != 'ok':
             window['-PlotINFO-'].update(results['message'], text_color='red', background_color='yellow')
     else:
-        window['-PlotINFO-'].update(f"phi:    {results['phi']:.3f}\nW:     {results['W']:.3f}", text_color='black', background_color='white')
+        window['-PlotINFO-'].update(f"bending of zone phi:          {results['phi']:.4f} [eV]\nSpace charge region W:     {results['W']:.4f} [cm]", text_color='black', background_color='white')
 
 # set theme for the window-interface
 sg.theme('LightGrey2') 
 
 # define layout
 
-# define plot column for layout
+# ------ Menu Definition ------ #      
+menu_def = [['File', ['Open', 'Save', 'Exit']],      
+            ['Help', 'About...'], ]      
+
+
+# ------ Column Definition ------ #
 
 plot_col =\
 [
@@ -252,13 +243,16 @@ settings_col =\
 ]
 
 # define whole layout
-layout = \
+layout =\
 [
+    [sg.Menu(menu_def)],
     [sg.Column(plot_col, vertical_alignment='top', justification='C', expand_x=True, size=(800, 800)),
     sg.VerticalSeparator(color='006699'),
     sg.Column(settings_col, vertical_alignment='top', justification='C', size=(1000, 800))],
 ]
 
+#--------------Setting of help---------------#
+help_text = '                                           Как пользоваться этой программой:\n\nДанная программа иллюстрирует пиннинг уровня Ферми поверхностными акцепторами.\n\nДля начала программы необходимо выбрать тип полупроводника в выпадающем списке: это может быть Si, Ge, GaAs или Custom(пользовательский режим).\n\nЗатем нажать кнопку SET - она настроит все параметры. После этого нажать кнопку Draw - она нарисует графики.\n\nПосле настройки можно работать со слайдерами и полями для ввода.\n\nЗамечания:\n1)Изменяя значения с помощью слайдера, графики обновляются автоматически и не требуется нажимать кнопку Draw.\n\n2)Если значения были изменены в окнах вывода, то для обновления графиков нужно нажать кнопку Draw.\n\n3)Некоторые параметры нельзя изменять, если выбран конкретный полупроводник. Такие параметры маркируются красным квадратом справа. Значения, которые можно изменить, маркируются зеленым квадратом.\n\n5)Если график не отрисовывается, то заданы некорректные значения и под графиком высветится предупреждающее сообщение.'
 # Create interface-window
 window = sg.Window('Pinning of Fermi Level', layout, finalize=True, resizable=True, size=(1800, 800), location=(0, 0))
 
@@ -266,8 +260,8 @@ window = sg.Window('Pinning of Fermi Level', layout, finalize=True, resizable=Tr
 fig = matplotlib.figure.Figure(figsize=(8, 6), dpi=100)
 ax = fig.add_subplot()
 ax.grid()
-ax.set_xlabel("t")
-ax.set_ylabel("E")
+ax.set_xlabel("x [cm]")
+ax.set_ylabel("E [eV]")
 # Create canvas that we can display matplotlib graph in the interface
 figure_canvas_agg = FigureCanvasTkAgg(fig, window['-CANVAS-'].TKCanvas)
 # Adjust placement of the canvas
@@ -330,4 +324,8 @@ while True:
         #print(values['NamePicture'])
         #fig.savefig('file.png')
         #fig.savefig(values['Save'] + '/' + values['NamePicture'] + '.png')
+        
+    if event == 'About...':
+        sg.popup(help_text, title='Help', font=font, line_width=80, background_color='#ffffe8')
+ 
 window.close()
