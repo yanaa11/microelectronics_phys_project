@@ -7,6 +7,9 @@ import matplotlib
 import calculatingModule
 matplotlib.use('TkAgg')
 
+# coef_phys_parameters on interface
+cpp = {'N_d0': 1e12, 'N_as': 1e13, 'E_out': 1e4}
+
 def draw_figure(ax, figure_canvas_agg, results):
     """
     Redraw plot for each new event.
@@ -39,14 +42,14 @@ def getCalculatedValues(values):
     args = {
         "E_gap":   float(values['-IN1-']),    # Band gap [eV]
         "E_d":     float(values['-IN2-']),    # Donors level [eV]
-        "N_d0":    float(values['-IN3-']),    # Concentration of donors 10^27 [cm^(-3)]
+        "N_d0":    float(values['-IN3-'])*cpp['N_d0'],    # Concentration of donors 10^27 [cm^(-3)]
         "E_as":    float(values['-IN4-']),    # Surface acceptors level [eV]
-        "N_as":    float(values['-IN5-']),    # Concentration of surface acceptors 10^27 [cm^(-3)]
+        "N_as":    float(values['-IN5-'])*cpp['N_as'],    # Concentration of surface acceptors 10^27 [cm^(-3)]
         "m_e":     float(values['-IN6-']),    # Effective electron mass [m_0]
         "m_h":     float(values['-IN7-']),    # Effective hole mass [m_0]
         "epsilon": float(values['-IN8-']),    # Dielectric permittivity
         "T":       float(values['-IN9-']),    # Temperature [K]
-        "E_out":   float(values['-IN10-']),   # External electric field
+        "E_out":   float(values['-IN10-'])*cpp['E_out'],   # External electric field
         "mat":     values['-Mats-']           # Material
     }
     
@@ -61,40 +64,40 @@ def update_sliders(vals):
 def update_inputs(vals):
     for i in range(1, 11):
         window['-IN'+str(i)+'-'].update(vals[i-1])
-
+        
+def update_bounderies(vals):
+    window['SL4'].update(float(vals[0])/2, range=(0.1, vals[0]))
+        
 def block_unblock_properties_SC(block):
     """
     If you choose specific Semiconducter, then some property should be blocked
     If you pick "another", then all property will be unblocked
     """
-    window['SL2'].update(disabled=block)     # blocked Donors level
-    window['-IN2-'].update(disabled=block)   
-    window['SL3'].update(disabled=block)     # blocked Concentration of donors
-    window['-IN3-'].update(disabled=block)  
-    window['SL4'].update(disabled=block)     # blocked Surface acceptors level
-    window['-IN4-'].update(disabled=block)   
-    window['SL5'].update(disabled=block)     # blocked Concentration of surface acceptors
-    window['-IN5-'].update(disabled=block)   
-    window['SL9'].update(disabled=block)     # blocked Temperature
-    window['-IN9-'].update(disabled=block)   
-    window['SL10'].update(disabled=block)    # blocked External electric field
-    window['-IN10-'].update(disabled=block)  
+    
+    window['SL1'].update(disabled=block)     # blocked Band gap
+    window['-IN1-'].update(disabled=block)   
+    window['SL6'].update(disabled=block)     # blocked Effective electron mass
+    window['-IN6-'].update(disabled=block)  
+    window['SL7'].update(disabled=block)     # blocked Effective hole mass
+    window['-IN7-'].update(disabled=block)  
+    window['SL8'].update(disabled=block)     # blocked Dielectric permittivity
+    window['-IN8-'].update(disabled=block)   
     
     simg = (20, 20)
     if block==False:
         for i in range(1, 11):
             window['I' + str(i)].update('unlock.png', size=simg)
     else:
-        window['I1'].update('unlock.png', size=simg)
-        window['I2'].update('lock.png', size=simg)
-        window['I3'].update('lock.png', size=simg)
-        window['I4'].update('lock.png', size=simg)
-        window['I5'].update('lock.png', size=simg)
-        window['I6'].update('unlock.png', size=simg)
-        window['I7'].update('unlock.png', size=simg)
-        window['I8'].update('unlock.png', size=simg)
-        window['I9'].update('lock.png', size=simg)
-        window['I10'].update('lock.png', size=simg)
+        window['I1'].update('lock.png', size=simg)
+        window['I2'].update('unlock.png', size=simg)
+        window['I3'].update('unlock.png', size=simg)
+        window['I4'].update('unlock.png', size=simg)
+        window['I5'].update('unlock.png', size=simg)
+        window['I6'].update('lock.png', size=simg)
+        window['I7'].update('lock.png', size=simg)
+        window['I8'].update('lock.png', size=simg)
+        window['I9'].update('unlock.png', size=simg)
+        window['I10'].update('unlock.png', size=simg)
     
 def output_info(results):
     if results['message'] != 'ok':
@@ -117,7 +120,7 @@ menu_def = [['File', ['Open', 'Save', 'Exit']],
 plot_col =\
 [
     [sg.Canvas(key='-CANVAS-', size=(640, 640))],
-    [sg.Text('', key='-PlotINFO-', size=(60, 2), pad=((75, 0), (15, 0)), font=('Helvetica', 15), justification='c')],
+    [sg.Text('', key='-PlotINFO-', size=(60, 3), pad=((75, 0), (15, 0)), font=('Helvetica', 15), justification='c')],
 ]
 
 # define settings column for layout
@@ -138,7 +141,7 @@ nps = (30,1)
 font = ("Helvetica", 15)
 ssld = (30, 10)
 sinp = (7, 1)
-sphp = (10, 1)
+sphp = (15, 1)
 simg = (20, 20)
 pinp = ((35, 0), (0, 0))
 bw = 1.5
@@ -150,81 +153,81 @@ settings_col =\
     # 1. Bad gap Row
     [sg.Frame('', border_width=0, pad = pfr, layout=[[
         sg.Text('Band gap:', nps, font=font),
-        sg.Slider(key='SL1', range=(1e-5, 1e-2), orientation='h', resolution=1e-6, size=ssld, default_value=1, enable_events=True, disable_number_display=dnd),
-        sg.Input('1.0', key='-IN1-', size=sinp, border_width=bw, font=font, pad=pinp),
+        sg.Slider(key='SL1', range=(0, 10), orientation='h', resolution=0.01, size=ssld, default_value=5, enable_events=True, disable_number_display=dnd),
+        sg.Input('5', key='-IN1-', size=sinp, border_width=bw, font=font, pad=pinp),
         sg.Text('[eV]', size=sphp, font=font),
         sg.Image('unlock.png', key='I1', size=simg, visible=vimg)
     ]])],
     # 2. Donor level Row
     [sg.Frame('', border_width=0, pad = pfr, layout=[[
         sg.Text('Donor level:', nps, font=font),
-        sg.Slider(key='SL2', range=(1e-4, 1e-2), orientation='h', resolution=1e-5, size=ssld, default_value=1, enable_events=True, disable_number_display=dnd),
-        sg.Input('1.0', key='-IN2-', size=sinp, border_width=bw, font=font, pad=pinp),
+        sg.Slider(key='SL2', range=(0, 2.5), orientation='h', resolution=0.01, size=ssld, default_value=0.5, enable_events=True, disable_number_display=dnd),
+        sg.Input('0.5', key='-IN2-', size=sinp, border_width=bw, font=font, pad=pinp),
         sg.Text('[eV]', size=sphp, font=font),
         sg.Image('unlock.png', key='I2', size=simg, visible=vimg)
     ]])],
     # 3. Concentration of donors Row
     [sg.Frame('', border_width=0, pad = pfr, layout=[[
         sg.Text('Concentration of donors:', nps, font=font),
-        sg.Slider(key='SL3', range=(1e9, 1e10), orientation='h', size=ssld, default_value=1, enable_events=True, disable_number_display=dnd),
-        sg.Input('1.0', key='-IN3-', size=sinp, border_width=bw, font=font, pad=pinp),
-        sg.Text('[cm^(-3)]', size=sphp, font=font),
+        sg.Slider(key='SL3', range=(1e-3, 100), orientation='h', resolution=0.1, size=ssld, default_value=50, enable_events=True, disable_number_display=dnd),
+        sg.Input('50', key='-IN3-', size=sinp, border_width=bw, font=font, pad=pinp),
+        sg.Text('10^12*[cm^(-3)]', size=sphp, font=font),
         sg.Image('unlock.png', key='I3', size=simg, visible=vimg)
     ]])],
     # 4. Surface acceptors level Row
     [sg.Frame('', border_width=0, pad = pfr, layout=[[
         sg.Text('Surface acceptors level:', nps, font=font),
-        sg.Slider(key='SL4', range=(0, 1), orientation='h', resolution=0.01, size=ssld, default_value=0, enable_events=True, disable_number_display=dnd),
-        sg.Input('1.0', key='-IN4-', size=sinp, border_width=bw, font=font, pad=pinp),
+        sg.Slider(key='SL4', range=(0.1, 5), orientation='h', resolution=0.01, size=ssld, default_value=2.5, enable_events=True, disable_number_display=dnd),
+        sg.Input('2.5', key='-IN4-', size=sinp, border_width=bw, font=font, pad=pinp),
         sg.Text('[eV]', size=sphp, font=font),
         sg.Image('unlock.png', key='I4', size=simg, visible=vimg)
     ]])],
     # 5. Concentration of surface acceptors Row
     [sg.Frame('', border_width=0, pad = pfr, layout=[[
         sg.Text('Concentration of surface acceptors:', nps, font=font),
-        sg.Slider(key='SL5', range=(1.5e10, 1.5e15), orientation='h', size=ssld, default_value=1, enable_events=True, disable_number_display=dnd),
-        sg.Input('1.0', key='-IN5-', size=sinp, border_width=bw, font=font, pad=pinp),
-        sg.Text('[cm^(-2)]', size=sphp, font=font),
+        sg.Slider(key='SL5', range=(1e-3, 100), orientation='h', resolution=0.1, size=ssld, default_value=50, enable_events=True, disable_number_display=dnd),
+        sg.Input('50', key='-IN5-', size=sinp, border_width=bw, font=font, pad=pinp),
+        sg.Text('10^13*[cm^(-2)]', size=sphp, font=font),
         sg.Image('unlock.png', key='I5', size=simg, visible=vimg)
     ]])],
     # 6. Effective electron mass Row
     [sg.Frame('', border_width=0, pad = pfr, layout=[[
         sg.Text('Effective electron mass:', nps, font=font),
-        sg.Slider(key='SL6', range=(0, 1), orientation='h', resolution=0.01, size=ssld, default_value=0, enable_events=True, disable_number_display=dnd),
-        sg.Input('1.0', key='-IN6-', size=sinp, border_width=bw, font=font, pad=pinp),
+        sg.Slider(key='SL6', range=(0.01, 1), orientation='h', resolution=0.01, size=ssld, default_value=0.5, enable_events=True, disable_number_display=dnd),
+        sg.Input('0.5', key='-IN6-', size=sinp, border_width=bw, font=font, pad=pinp),
         sg.Text('[m_0]', size=sphp, font=font),
         sg.Image('unlock.png', key='I6', size=simg, visible=vimg)
     ]])],
     # 7. Effective hole mass Row
     [sg.Frame('', border_width=0, pad = pfr, layout=[[
         sg.Text('Effective hole mass:', nps, font=font),
-        sg.Slider(key='SL7', range=(0, 1), orientation='h', resolution=0.01, size=ssld, default_value=0, enable_events=True, disable_number_display=dnd),
-        sg.Input('1.0', key='-IN7-', size=sinp, border_width=bw, font=font, pad=pinp),
+        sg.Slider(key='SL7', range=(0.01, 1), orientation='h', resolution=0.01, size=ssld, default_value=0.5, enable_events=True, disable_number_display=dnd),
+        sg.Input('0.5', key='-IN7-', size=sinp, border_width=bw, font=font, pad=pinp),
         sg.Text('[m_0]', size=sphp, font=font),
         sg.Image('unlock.png', key='I7', size=simg, visible=vimg)
     ]])],
     # 8. Dielectric permittivity Row
     [sg.Frame('', border_width=0, pad = pfr, layout=[[
         sg.Text('Dielectric permittivity:', nps, font=font),
-        sg.Slider(key='SL8', range=(10, 20), orientation='h', resolution=0.1, size=ssld, default_value=10, enable_events=True, disable_number_display=dnd),
-        sg.Input('1.0', key='-IN8-', size=sinp, border_width=bw, font=font, pad=pinp),
+        sg.Slider(key='SL8', range=(5, 20), orientation='h', resolution=0.1, size=ssld, default_value=12.5, enable_events=True, disable_number_display=dnd),
+        sg.Input('12.5', key='-IN8-', size=sinp, border_width=bw, font=font, pad=pinp),
         sg.Text('', size=sphp, font=font),
         sg.Image('unlock.png', key='I8', size=simg, visible=vimg)
     ]])],
     # 9. Temperature Row
     [sg.Frame('', border_width=0, pad = pfr, layout=[[
         sg.Text('Temperature:', nps, font=font),
-        sg.Slider(key='SL9', range=(300, 400), orientation='h', size=ssld, default_value=1, enable_events=True, disable_number_display=dnd),
-        sg.Input('1.0', key='-IN9-', size=sinp, border_width=bw, font=font, pad=pinp),
+        sg.Slider(key='SL9', range=(100, 3000), orientation='h', resolution=1, size=ssld, default_value=300, enable_events=True, disable_number_display=dnd),
+        sg.Input('300', key='-IN9-', size=sinp, border_width=bw, font=font, pad=pinp),
         sg.Text('[K]', size=sphp, font=font),
         sg.Image('unlock.png', key='I9', size=simg, visible=vimg)
     ]])],
     # 10. External electric field Row
     [sg.Frame('', border_width=0, pad = pfr, layout=[[
         sg.Text('External electric field:', nps, font=font),
-        sg.Slider(key='SL10', range=(1e3, 1e4), orientation='h', size=ssld, default_value=1, enable_events=True, disable_number_display=dnd),
-        sg.Input('1.0', key='-IN10-', size=sinp, border_width=bw, font=font, pad=pinp),
-        sg.Text('[V/m]', size=sphp, font=font),
+        sg.Slider(key='SL10', range=(1, 200), orientation='h', resolution=1, size=ssld, default_value=20, enable_events=True, disable_number_display=dnd),
+        sg.Input('20', key='-IN10-', size=sinp, border_width=bw, font=font, pad=pinp),
+        sg.Text('10^4*[V/m]', size=sphp, font=font),
         sg.Image('unlock.png', key='I10', size=simg, visible=vimg)
     ]])],
     # 11. Draw and Set Material Row 
@@ -275,8 +278,8 @@ while True:
         break
     
     if event in ('SL1', 'SL2', 'SL3', 'SL4', 'SL5', 'SL6', 'SL7', 'SL8', 'SL9', 'SL10'):
-        vals = (values['SL1'], values['SL2'], values['SL3'], values['SL4'], values['SL5'], 
-                values['SL6'], values['SL7'], values['SL8'], values['SL9'], values['SL10'])
+        vals = (values['SL1'], values['SL2'], values['SL3'], values['SL4'], values['SL5'],
+                values['SL6'], values['SL7'], values['SL8'], values['SL9'],values['SL10'])
         update_inputs(vals)
         results = getCalculatedValues(values)
         draw_figure(ax, figure_canvas_agg, results)
@@ -295,25 +298,28 @@ while True:
         vals = (E_gap, E_d, N_d0, E_as, N_as, m_e, m_h, epsilon, T, E_out)
         """
         if values['-Mats-'] == 'custom':
-            vals = (1e-5, 1e-2, 1e10, 0.96, 1.3e10, 0.5, 0.5, 10.0, 300, 1e4)
+            vals = (5, 0.5, 10, 2.5, 10, 0.5, 0.5, 10.0, 300, 1)
             update_sliders(vals)
             update_inputs(vals)
+            update_bounderies(vals)
             block_unblock_properties_SC(False)
         
         if values['-Mats-'] == 'Si':
-            vals = (1e-5, 1e-2, 1e10, 0.96, 1.5e15, 0.5, 0.5, 11.7, 300, 1e4)
+            vals = (1.12, 1e-2, 10, 1.12/2, 10, 0.36, 0.81, 11.7, 300, 1)
             update_sliders(vals)
             update_inputs(vals)
+            update_bounderies(vals)
             block_unblock_properties_SC(True)
             
         if values['-Mats-'] == 'Ge':
-            vals = (1e-5, 1e-2, 1e10, 0.96, 1.5e15, 0.5, 0.5, 16.2, 300, 1e4)
+            vals = (0.661, 1e-2, 101, 0.661/2, 10, 0.22, 0.34, 16.2, 300, 1)
             update_sliders(vals)
             update_inputs(vals)
+            update_bounderies(vals)
             block_unblock_properties_SC(True)
             
         if values['-Mats-'] == 'GaAs':
-            vals = (1e-5, 1e-2, 1e10, 0.96, 1.5e15, 0.5, 0.5, 10.89, 300, 1e4)
+            vals = (1.424, 1e-2, 10, 1.424/2, 10, 0.063, 0.53, 12.9, 300, 1)
             update_sliders(vals)
             update_inputs(vals)
             block_unblock_properties_SC(True)
