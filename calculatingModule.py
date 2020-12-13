@@ -122,9 +122,16 @@ def calculate(parms):
         parms['E_out'] = parms['E_out'] * 3.3*1e-5
         
         parms['E_f'] = scond.fermi_level(T)
-        results['phi'] = phi(parms) #eV
-        results['W'] = W(results['phi'], parms) #cm
-        results['x_s'], results['E_f_s'], results['E_v_s'],results['E_c_s'], results['E_d_s'], results['E_as_s'] = make_points(results['phi'], results['W'], parms)   
+        
+        try:
+            results['phi'] = phi(parms) #eV
+            results['W'] = W(results['phi'], parms) #cm
+            results['x_s'], results['E_f_s'], results['E_v_s'],results['E_c_s'], results['E_d_s'], results['E_as_s'] = make_points(results['phi'], results['W'], parms)
+        except Exception:
+            message = 'Ошибка! Некорректные данные'
+            results['message'] = message
+            return results
+        
     else: results['message'] = message
     return results
 
