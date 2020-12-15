@@ -5,7 +5,6 @@ import numpy as np
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import matplotlib
 import calculatingModule
-
 matplotlib.use('TkAgg')
 
 # coef_phys_parameters on interface
@@ -33,9 +32,9 @@ def draw_figure(ax, figure_canvas_agg, results):
         ax.plot(results['x_s'], results['E_d_s'], label='Donor Energy')
         ax.plot(results['x_s'], results['E_as_s'], label='Acceptor Energy')
         ax.axhline(results['phi'], c='k', linestyle='dashed')
-        ax.text(0.002, results['phi'] + 0.02, 'phi = ' + str(round(results['phi'], 4)) + ' [eV]')
+        #ax.text(0.002, results['phi'] + 0.0002, 'phi = ' + str(round(results['phi'], 4)) + ' [eV]')
         ax.axvline(results['W'], c='k', linestyle='dashed')
-        ax.text(results['W'] + 0.0001, 0.2, 'W = ' + str(round(results['W'], 4)) + ' [cm]')
+        #ax.text(results['W'] + 0.0001, 0.2, 'W = ' + str(round(results['W'], 4)) + ' [cm]')
         ax.legend(bbox_to_anchor=(1., 0.5), fontsize=10, loc='right')
 
     figure_canvas_agg.draw()
@@ -129,7 +128,7 @@ menu_def = [['File', ['Open', 'Save', 'Exit']],
 plot_col = \
     [
         [sg.Canvas(key='-CANVAS-', size=(640, 640))],
-        [sg.Text('', key='-PlotINFO-', size=(60, 3), pad=((75, 0), (15, 0)), font=('Helvetica', 15),
+        [sg.Text('', key='-PlotINFO-', size=(50, 3), pad=((15, 0), (15, 0)), font=('Helvetica', 15),
                  justification='c')],
     ]
 
@@ -146,11 +145,11 @@ Adjusting of the settings column
 {bw} - border width of the input block
 """
 pfr = ((0, 0), (0, 25))
-nps = (30, 1)
+nps = (26, 1)
 font = ("Helvetica", 11)
 ssld = (20, 10)
 sinp = (7, 1)
-sphp = (15, 1)
+sphp = (12, 1)
 simg = (20, 20)
 pinp = ((35, 0), (0, 0))
 bw = 1.5
@@ -255,12 +254,12 @@ settings_col = \
             sg.Combo(('Si', 'Ge', 'GaAs', 'custom'), key='-Mats-', default_value='custom', size=(8, 1), font=font,
                      enable_events=False),
             sg.Button('Set', key='SetMat', font=font, pad=((10, 0), (0, 0))),
-            sg.Text('Draw plot:', font=font, pad=((238, 0), (0, 0))),
+            sg.Text('Draw plot:', font=font, pad=((200, 0), (0, 0))),
             sg.Button('Draw', key='Draw', font=font, pad=((10, 0), (0, 0)))
         ]])],
         # 12. Save Row
         [sg.Frame('', border_width=0, pad=pfr, layout=[[
-            sg.Text('Save plot:', font=font, pad=((433, 0), (0, 0))),
+            sg.Text('Save plot:', font=font, pad=((395, 0), (0, 0))),
             sg.FolderBrowse('Save', key='Save', font=font, pad=((10, 0), (0, 0)), enable_events=True)
         ]])],
     ]
@@ -269,18 +268,18 @@ settings_col = \
 layout = \
     [
         [sg.Menu(menu_def)],
-        [sg.Column(plot_col, vertical_alignment='top', justification='C', expand_x=True, size=(700, 800)),
+        [sg.Column(plot_col, vertical_alignment='top', justification='C', expand_x=True, size=(600, 800)),
          sg.VerticalSeparator(color='006699'),
-         sg.Column(settings_col, vertical_alignment='top', justification='C', size=(800, 800))],
+         sg.Column(settings_col, vertical_alignment='top', justification='C', size=(700, 800))],
     ]
 
 # --------------Setting of help---------------#
 help_text = '                                           Как пользоваться этой программой:\n\nДанная программа иллюстрирует пиннинг уровня Ферми поверхностными акцепторами.\n\nДля начала программы необходимо выбрать тип полупроводника в выпадающем списке: это может быть Si, Ge, GaAs или Custom(пользовательский режим).\n\nЗатем нажать кнопку SET - она настроит все параметры. После этого нажать кнопку Draw - она нарисует графики.\n\nПосле настройки можно работать со слайдерами и полями для ввода.\n\nЗамечания:\n1)Изменяя значения с помощью слайдера, графики обновляются автоматически и не требуется нажимать кнопку Draw.\n\n2)Если значения были изменены в окнах вывода, то для обновления графиков нужно нажать кнопку Draw.\n\n3)Некоторые параметры нельзя изменять, если выбран конкретный полупроводник. Такие параметры маркируются красным квадратом справа. Значения, которые можно изменить, маркируются зеленым квадратом.\n\n5)Если график не отрисовывается, то заданы некорректные значения и под графиком высветится предупреждающее сообщение.'
 # Create interface-window
-window = sg.Window('Pinning of Fermi Level', layout, finalize=True, resizable=True, size=(1500, 800), location=(0, 0))
+window = sg.Window('Pinning of Fermi Level', layout, finalize=True, resizable=True, size=(1300, 800), location=(0, 0))
 
 # Create figure for plotting
-fig = matplotlib.figure.Figure(figsize=(7, 5), dpi=100)
+fig = matplotlib.figure.Figure(figsize=(6, 5), dpi=100)
 ax = fig.add_subplot()
 ax.grid()
 ax.set_xlabel("x [cm]")
