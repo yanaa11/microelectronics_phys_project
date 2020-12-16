@@ -8,15 +8,13 @@ import calculatingModule
 matplotlib.use('TkAgg')
 
 # coef_phys_parameters on interface
-cpp = {'N_d0': 1e12, 'N_as': 1e13, 'E_out': 1e4}
+cpp = {'N_d0': 1e12, 'N_as': 1e13, 'E_out': 1e5}
 
 
 def draw_figure(ax, figure_canvas_agg, results):
     """
     Redraw plot for each new event.
-
     {ax} is responsible for adjusting of the plot
-
     {figure_canvas_agg} helps draw plot in the window-interface
     """
 
@@ -242,10 +240,10 @@ settings_col = \
         # 10. External electric field Row
         [sg.Frame('', border_width=0, pad=pfr, layout=[[
             sg.Text('External electric field:', nps, font=font),
-            sg.Slider(key='SL10', range=(1, 200), orientation='h', resolution=1, size=ssld, default_value=20,
+            sg.Slider(key='SL10', range=(-200, 200), orientation='h', resolution=1, size=ssld, default_value=20,
                       enable_events=True, disable_number_display=dnd),
             sg.Input('20', key='-IN10-', size=sinp, border_width=bw, font=font, pad=pinp),
-            sg.Text('10^4*[V/m]', size=sphp, font=font),
+            sg.Text('10^5*[V/m]', size=sphp, font=font),
             sg.Image('unlock.png', key='I10', size=simg, visible=vimg)
         ]])],
         # 11. Draw and Set Material Row
@@ -353,4 +351,4 @@ while True:
     if event == 'About...':
         sg.popup(help_text, title='Help', font=font, line_width=80, background_color='#ffffe8')
 
-window.close()
+window.close() 
