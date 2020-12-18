@@ -1,0 +1,4 @@
+fti-fompy
+matplotlib
+pysimplegui
+numpy
